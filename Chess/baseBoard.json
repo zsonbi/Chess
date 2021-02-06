@@ -7,7 +7,7 @@
   },
   {
     "side": false,
-    "type": "K",
+    "type": "N",
     "rowPos": 0,
     "colPos": 1
   },
@@ -25,7 +25,7 @@
   },
   {
     "side": false,
-    "type": "W",
+    "type": "K",
     "rowPos": 0,
     "colPos": 4
   },
@@ -37,7 +37,7 @@
   },
   {
     "side": false,
-    "type": "K",
+    "type": "N",
     "rowPos": 0,
     "colPos": 6
   },
@@ -104,7 +104,7 @@
   },
   {
     "side": true,
-    "type": "K",
+    "type": "N",
     "rowPos": 7,
     "colPos": 1
   },
@@ -122,7 +122,7 @@
   },
   {
     "side": true,
-    "type": "W",
+    "type": "K",
     "rowPos": 7,
     "colPos": 4
   },
@@ -134,7 +134,7 @@
   },
   {
     "side": true,
-    "type": "K",
+    "type": "N",
     "rowPos": 7,
     "colPos": 6
   },

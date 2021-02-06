@@ -41,7 +41,7 @@ namespace Chess
             {
                 string json;
                 List<PieceSave> pieceSaves;
-                using (StreamReader r = new StreamReader("baseBoard.json"))
+                using (StreamReader r = new StreamReader("../../baseBoard.json"))
                 {
                     json = r.ReadToEnd();
                     pieceSaves = JsonConvert.DeserializeObject<List<PieceSave>>(json);
@@ -58,7 +58,7 @@ namespace Chess
         //************************************************************************
         //Private Methods
         //returns the appropiate Piece for the char
-        //{P-Pawn, K-Knight, R-Rook, B-Bishop, Q-Queen, W-King}
+        //{P-Pawn, N-Knight, R-Rook, B-Bishop, Q-Queen, K-King}
         private Piece CharToPiece(char input, sbyte rowPos, sbyte colPos, bool side)
         {
             switch (input)
@@ -66,7 +66,7 @@ namespace Chess
                 case 'P':
                     return new Pawn(ref pieces, rowPos, colPos, side);
 
-                case 'K':
+                case 'N':
                     return new Knight(ref pieces, rowPos, colPos, side);
 
                 case 'R':
@@ -78,7 +78,7 @@ namespace Chess
                 case 'Q':
                     return new Queen(ref pieces, rowPos, colPos, side);
 
-                case 'W':
+                case 'K':
                     return new King(ref pieces, rowPos, colPos, side);
 
                 default:
