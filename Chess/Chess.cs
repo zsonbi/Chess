@@ -27,6 +27,8 @@ namespace Chess
         public static readonly byte rowSize = 8;
         public static readonly byte colSize = 8;
         public Piece[,] pieces;
+        internal King whiteKing { get; private set; }
+        internal King blackKing { get; private set; }
 
         //Access even to the dead members
         private List<Piece> pieceList = new List<Piece>();
@@ -53,6 +55,7 @@ namespace Chess
                     pieceList.Add(pieces[item.rowPos, item.colPos]);
                 }
             }
+            currSide = true;
         }
 
         //************************************************************************
@@ -79,7 +82,12 @@ namespace Chess
                     return new Queen(ref pieces, rowPos, colPos, side);
 
                 case 'K':
-                    return new King(ref pieces, rowPos, colPos, side);
+                    King king = new King(ref pieces, rowPos, colPos, side);
+                    if (king.side)
+                        whiteKing = king;
+                    else
+                        blackKing = king;
+                    return king;
 
                 default:
                     throw new Exception("Unknown character");
@@ -159,7 +167,22 @@ namespace Chess
 #endif
                 return false;
             }
+            currSide = !currSide;
             return true;
+        }
+
+        /// <summary>
+        /// Checks if that piece is selectable
+        /// </summary>
+        /// <param name="row">row of that piece</param>
+        /// <param name="col">column of that piece</param>
+        /// <returns>true if it is possible false if not</returns>
+        public bool Selectable(sbyte row, sbyte col)
+        {
+            if (pieces[row, col] == null)
+                return false;
+
+            return currSide == pieces[row, col].side;
         }
     }
 }

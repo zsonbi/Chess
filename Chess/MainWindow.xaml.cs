@@ -151,8 +151,9 @@ namespace Chess
             }
             else if (currSelected[0] == -1 && currSelected[1] == -1)
             {
-                if (!game.ContainsPiece(row, col))
+                if (!game.ContainsPiece(row, col) || !game.Selectable(row, col))
                     return 0;
+
                 squares[row, col].Margin = new Thickness(3);
                 currSelected[0] = row;
                 currSelected[1] = col;

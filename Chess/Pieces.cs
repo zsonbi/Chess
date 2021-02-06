@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Chess
 {
@@ -44,7 +41,7 @@ namespace Chess
         /// </summary>
         /// <param name="destRow">the row where it should go</param>
         /// <param name="destCol">the column where it should go</param>
-        public void Move(sbyte destRow, sbyte destCol)
+        public virtual void Move(sbyte destRow, sbyte destCol)
         {
             if (OutOfBounds((sbyte)(rowPos + destRow), (sbyte)(colPos + destCol)))
                 throw new IndexOutOfRangeException("Gone out of the board");
@@ -100,6 +97,8 @@ namespace Chess
     /// </summary>
     internal class Pawn : Piece
     {
+        private bool firstMove = true;
+
         public Pawn(ref Piece[,] pieces, sbyte rowPos, sbyte colPos, bool side) : base(ref pieces, rowPos, colPos, side)
         {
         }
@@ -115,11 +114,24 @@ namespace Chess
                 return output;
             if (pieces[rowPos + (side ? -1 : 1), colPos] == null)
                 output.Add(new sbyte[] { (sbyte)(rowPos + (side ? -1 : 1)), colPos });
+            if (pieces[rowPos + (side ? -2 : 2), colPos] == null && firstMove)
+                output.Add(new sbyte[] { (sbyte)(rowPos + (side ? -2 : 2)), colPos });
             if (colPos + 1 < ChessGame.colSize && pieces[rowPos + (side ? -1 : 1), colPos + 1] != null && pieces[rowPos + (side ? -1 : 1), colPos + 1].side != side)
                 output.Add(new sbyte[] { (sbyte)(rowPos + (side ? -1 : 1)), (sbyte)(colPos + 1) });
             if (colPos - 1 >= 0 && pieces[rowPos + (side ? -1 : 1), colPos - 1] != null && pieces[rowPos + (side ? -1 : 1), colPos - 1].side != side)
                 output.Add(new sbyte[] { (sbyte)(rowPos + (side ? -1 : 1)), (sbyte)(colPos - 1) });
             return output;
+        }
+
+        /// <summary>
+        /// The movement of the pawn
+        /// </summary>
+        /// <param name="destRow">how much it should go forward</param>
+        /// <param name="destCol">how much it should go sideways</param>
+        public override void Move(sbyte destRow, sbyte destCol)
+        {
+            base.Move(destRow, destCol);
+            firstMove = false;
         }
     }
 
