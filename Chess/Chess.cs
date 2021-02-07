@@ -23,12 +23,31 @@ namespace Chess
             }
         }
 
-        public bool currSide { get; private set; }
-        public static readonly byte rowSize = 8;
-        public static readonly byte colSize = 8;
-        public Piece[,] pieces;
+        internal static readonly byte rowSize = 8;
+        internal static readonly byte colSize = 8;
+        private Piece[,] pieces;
         internal King whiteKing { get; private set; }
         internal King blackKing { get; private set; }
+
+        /// <summary>
+        /// Gets the current side (white = true; black = false)
+        /// </summary>
+        public bool currSide { get; private set; }
+
+        /// <summary>
+        /// Gets if the king is threatened
+        /// </summary>
+        public bool kingIsThreatened { get; private set; }
+
+        /// <summary>
+        /// Gets the white king's position
+        /// </summary>
+        public sbyte[] whiteKingPos { get => new sbyte[] { whiteKing.rowPos, whiteKing.colPos }; }
+
+        /// <summary>
+        /// Gets the black king's position
+        /// </summary>
+        public sbyte[] blackKingPos { get => new sbyte[] { blackKing.rowPos, blackKing.colPos }; }
 
         //Access even to the dead members
         private List<Piece> pieceList = new List<Piece>();
@@ -36,6 +55,7 @@ namespace Chess
         //Constructor
         public ChessGame()
         {
+            kingIsThreatened = false;
             //The side which comes next
             pieces = new Piece[rowSize, colSize];
             //If there is an already saved user config for that user load it
@@ -92,6 +112,32 @@ namespace Chess
                 default:
                     throw new Exception("Unknown character");
                     break;
+            }
+        }
+
+        //------------------------------------------------------------------
+        //Checks if the king is threatened by that move
+        private void CheckForKingThreat()
+        {
+            King enemyKing = currSide ? blackKing : whiteKing;
+            //Checks if the King is threatened
+            for (int i = 0; i < rowSize; i++)
+            {
+                for (int j = 0; j < colSize; j++)
+                {
+                    if (pieces[i, j] != null && pieces[i, j].side != currSide)
+                    {
+                        foreach (var item in pieces[i, j].PossibleMoves())
+                        {
+                            if (enemyKing.rowPos == item[0] && enemyKing.colPos == item[1])
+                            {
+                                enemyKing.isThreatened = true;
+                                kingIsThreatened = true;
+                                return;
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -167,6 +213,9 @@ namespace Chess
 #endif
                 return false;
             }
+
+            kingIsThreatened = false;
+            CheckForKingThreat();
             currSide = !currSide;
             return true;
         }
@@ -181,7 +230,6 @@ namespace Chess
         {
             if (pieces[row, col] == null)
                 return false;
-
             return currSide == pieces[row, col].side;
         }
     }
