@@ -133,9 +133,25 @@ namespace Chess
             {
                 whichKing.isThreatened = true;
                 kingIsThreatened = true;
+                //If the king has no other moves test for other pieces
                 if (whichKing.PossibleMoves().Count == 0)
                 {
-                    gameOver = true;
+                    List<sbyte[]> allyMoves = new List<sbyte[]>();
+                    //get every move which the other pieces can make if there is atleast one
+                    //then the king can still survive
+                    for (int i = 0; i < rowSize; i++)
+                    {
+                        for (int j = 0; j < colSize; j++)
+                        {
+                            if (pieces[i, j].side == whichKing.side)
+                            {
+                                allyMoves.AddRange(pieces[i, j].PossibleMoves(false, true));
+                            }
+                        }
+                    }
+
+                    if (allyMoves.Count == 0)
+                        gameOver = true;
                 }
                 return;
             }
@@ -149,8 +165,6 @@ namespace Chess
                 return false;
             return piece.rowPos == (piece.side ? 0 : 7);
         }
-
-        //-------------------------------------------------------------------------
 
         //**************************************************************************
         //Public Methods
@@ -269,7 +283,7 @@ namespace Chess
             {
                 pieces[row, col] = CharToPiece(type, row, col, pieces[row, col].side);
                 kingIsThreatened = false;
-                CheckForKingThreat(currSide ? blackKing : whiteKing);
+                CheckForKingThreat(!currSide ? blackKing : whiteKing);
             }
             else
             {

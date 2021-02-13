@@ -246,13 +246,16 @@ namespace Chess
         private void SelectUpgradePiece(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             Image piece = sender as Image;
-
             game.Upgrade(currSelected[0], currSelected[1], piece.Name[0]);
             currPieceSelected.Source = piece.Source;
             currSelected[0] = -1;
             currSelected[1] = -1;
             upgradeWindow.Close();
             CheckForGameOver();
+            //Marks the king's position if it's in check
+            sbyte[] kingPos = (game.currSide ? game.whiteKingPos : game.blackKingPos);
+            if (game.kingIsThreatened)
+                squares[kingPos[0], kingPos[1]].Fill = Brushes.Red;
         }
     }
 }

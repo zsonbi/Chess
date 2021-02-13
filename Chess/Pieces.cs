@@ -74,16 +74,19 @@ namespace Chess
                 Piece save = pieces[item[0], item[1]];
                 pieces[item[0], item[1]] = this;
                 pieces[this.rowPos, this.colPos] = null;
-                this.rowPos += item[0];
-                this.colPos += item[1];
+                sbyte rowSave = this.rowPos;
+                sbyte colSave = this.colPos;
+
+                this.rowPos = item[0];
+                this.colPos = item[1];
                 if (!alliedKing.IsKingInDanger())
                 {
                     testedMoves.Add(item);
                 }
 
                 pieces[item[0], item[1]] = save;
-                this.rowPos -= item[0];
-                this.colPos -= item[1];
+                this.rowPos = rowSave;
+                this.colPos = colSave;
                 pieces[this.rowPos, this.colPos] = this;
             }
             return testedMoves;
@@ -362,85 +365,11 @@ namespace Chess
         public override List<sbyte[]> PossibleMoves(bool kingMoveTest = false, bool kingIsInDanger = false)
         {
             List<sbyte[]> output = new List<sbyte[]>();
-            sbyte tempRow = base.rowPos;
-            sbyte tempCol = base.colPos;
+            output.AddRange(new Rook(ref pieces, rowPos, colPos, side).PossibleMoves());
+            output.AddRange(new Bishop(ref pieces, rowPos, colPos, side).PossibleMoves());
 
-            for (sbyte i = -1; i < 2; i += 2)
-            {
-                for (sbyte j = -1; j < 2; j += 2)
-                {
-                    tempCol = colPos;
-                    tempRow = rowPos;
-                    do
-                    {
-                        tempCol += i;
-                        tempRow += j;
-                        if (OutOfBounds(tempRow, tempCol))
-                            break;
-                        if (pieces[tempRow, tempCol] == null)
-                            output.Add(new sbyte[] { tempRow, tempCol });
-                        else if (kingMoveTest || pieces[tempRow, tempCol].side != this.side)
-                        {
-                            output.Add(new sbyte[] { tempRow, tempCol });
-                            break;
-                        }
-                        else break;
-                    }
-                    while (tempCol < ChessGame.colSize - 1 && tempCol > 0 && tempRow < ChessGame.rowSize - 1 && tempRow > 0);
-                }
-            }
-
-            //Checks the left way
-            for (sbyte i = (sbyte)(base.colPos - 1); i >= 0; i--)
-            {
-                if (pieces[rowPos, i] != null)
-                {
-                    //if it can attack
-                    if (kingMoveTest || pieces[rowPos, i].side != this.side)
-                        output.Add(new sbyte[] { rowPos, (sbyte)(i) });
-                    break;
-                }
-                output.Add(new sbyte[] { rowPos, (sbyte)(i) });
-            }
-            //Checks upwards
-            for (sbyte i = (sbyte)(base.rowPos - 1); i >= 0; i--)
-            {
-                //if it can attack
-                if (pieces[i, colPos] != null)
-                {
-                    if (kingMoveTest || pieces[i, colPos].side != this.side)
-                        output.Add(new sbyte[] { (sbyte)(i), colPos });
-                    break;
-                }
-                output.Add(new sbyte[] { (sbyte)(i), colPos });
-            }
-            //Checks the right way
-            for (sbyte i = (sbyte)(base.colPos + 1); i < ChessGame.colSize; i++)
-            {
-                //if it can attack
-                if (pieces[rowPos, i] != null)
-                {
-                    if (kingMoveTest || pieces[rowPos, i].side != this.side)
-                        output.Add(new sbyte[] { rowPos, (sbyte)(i) });
-
-                    break;
-                }
-                output.Add(new sbyte[] { rowPos, (sbyte)(i) });
-            }
-            //Checks downwards
-            for (sbyte i = (sbyte)(base.rowPos + 1); i < ChessGame.rowSize; i++)
-            {
-                //if it can attack
-                if (pieces[i, colPos] != null)
-                {
-                    if (kingMoveTest || pieces[i, colPos].side != this.side)
-                        output.Add(new sbyte[] { (sbyte)(i), colPos });
-                    break;
-                }
-                output.Add(new sbyte[] { (sbyte)(i), colPos });
-            }
-            if (kingIsInDanger)
-                output = TestForKingSafety(output);
+            /*  if (kingIsInDanger)
+                  output = TestForKingSafety(output);*/
             return output;
         }
     }
