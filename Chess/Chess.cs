@@ -26,8 +26,15 @@ namespace Chess
         internal static readonly byte rowSize = 8;
         internal static readonly byte colSize = 8;
         private Piece[,] pieces;
+
+        //pointer to the white king
         internal King whiteKing { get; private set; }
+
+        //pointer to the black king
         internal King blackKing { get; private set; }
+
+        //Access even to the dead members
+        private List<Piece> pieceList = new List<Piece>();
 
         /// <summary>
         /// Gets the current side (white = true; black = false)
@@ -49,8 +56,10 @@ namespace Chess
         /// </summary>
         public sbyte[] blackKingPos { get => new sbyte[] { blackKing.rowPos, blackKing.colPos }; }
 
-        //Access even to the dead members
-        private List<Piece> pieceList = new List<Piece>();
+        /// <summary>
+        /// A bool which stores if someone has lost the game
+        /// </summary>
+        public bool gameOver { get; private set; }
 
         //Constructor
         public ChessGame()
@@ -75,6 +84,7 @@ namespace Chess
                     pieceList.Add(pieces[item.rowPos, item.colPos]);
                 }
             }
+            gameOver = false;
             currSide = true;
         }
 
@@ -115,31 +125,32 @@ namespace Chess
             }
         }
 
-        //------------------------------------------------------------------
+        //--------------------------------------------------------------------------
         //Checks if the king is threatened by that move
-        private void CheckForKingThreat()
+        private void CheckForKingThreat(King whichKing)
         {
-            King enemyKing = currSide ? blackKing : whiteKing;
-            //Checks if the King is threatened
-            for (int i = 0; i < rowSize; i++)
+            if (whichKing.IsKingInDanger())
             {
-                for (int j = 0; j < colSize; j++)
+                whichKing.isThreatened = true;
+                kingIsThreatened = true;
+                if (whichKing.PossibleMoves().Count == 0)
                 {
-                    if (pieces[i, j] != null && pieces[i, j].side != currSide)
-                    {
-                        foreach (var item in pieces[i, j].PossibleMoves())
-                        {
-                            if (enemyKing.rowPos == item[0] && enemyKing.colPos == item[1])
-                            {
-                                enemyKing.isThreatened = true;
-                                kingIsThreatened = true;
-                                return;
-                            }
-                        }
-                    }
+                    gameOver = true;
                 }
+                return;
             }
         }
+
+        //-------------------------------------------------------------------------
+        //Checks if that piece can be upgraded
+        private bool CanUpgrade(Piece piece)
+        {
+            if (!(piece is Pawn))
+                return false;
+            return piece.rowPos == (piece.side ? 0 : 7);
+        }
+
+        //-------------------------------------------------------------------------
 
         //**************************************************************************
         //Public Methods
@@ -187,7 +198,7 @@ namespace Chess
         public List<sbyte[]> GetPossibleMoves(sbyte row, sbyte col)
         {
             if (pieces[row, col] != null)
-                return pieces[row, col].PossibleMoves();
+                return pieces[row, col].PossibleMoves(false, true);
             else
                 throw new Exception("There is no piece there");
         }
@@ -202,6 +213,9 @@ namespace Chess
         /// <returns>true if it was successful false if there was an error</returns>
         public bool Move(sbyte rowPos, sbyte colPos, sbyte toRowPos, sbyte toColPos)
         {
+            if (gameOver)
+                return false;
+
             try
             {
                 pieces[rowPos, colPos].Move((sbyte)(toRowPos - rowPos), (sbyte)(toColPos - colPos));
@@ -213,9 +227,8 @@ namespace Chess
 #endif
                 return false;
             }
-
             kingIsThreatened = false;
-            CheckForKingThreat();
+            CheckForKingThreat(currSide ? blackKing : whiteKing);
             currSide = !currSide;
             return true;
         }
@@ -231,6 +244,53 @@ namespace Chess
             if (pieces[row, col] == null)
                 return false;
             return currSide == pieces[row, col].side;
+        }
+
+        /// <summary>
+        /// Gets if it is possible to upgrade that piece
+        /// </summary>
+        /// <param name="row">row of that piece</param>
+        /// <param name="col">column of that piece</param>
+        /// <returns>true-if possible false if not</returns>
+        public bool CanUpgradeAt(sbyte row, sbyte col)
+        {
+            return CanUpgrade(pieces[row, col]);
+        }
+
+        /// <summary>
+        /// Upgrades the pawn to an another type
+        /// </summary>
+        /// <param name="row">row of that piece</param>
+        /// <param name="col">column of that piece</param>
+        /// <param name="type">character which symbols the piece</param>
+        public void Upgrade(sbyte row, sbyte col, char type)
+        {
+            if (CanUpgradeAt(row, col))
+            {
+                pieces[row, col] = CharToPiece(type, row, col, pieces[row, col].side);
+                kingIsThreatened = false;
+                CheckForKingThreat(currSide ? blackKing : whiteKing);
+            }
+            else
+            {
+#if DEBUG
+                throw new Exception("Bad upgrade");
+#endif
+            }
+        }
+
+        /// <summary>
+        /// Returns who won throws an exception if the game was still in progress
+        /// </summary>
+        /// <returns>true = white won false = black won</returns>
+        public bool WhoWon()
+        {
+            if (!gameOver)
+            {
+                throw new Exception("NoOne won");
+            }
+            else
+                return blackKing.isThreatened;
         }
     }
 }

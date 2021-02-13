@@ -20,19 +20,15 @@ namespace Chess
         /// </summary>
         public bool side { get; private set; }
 
-        /// <summary>
-        /// Determines whether the piece has died
-        /// </summary>
-        public bool isDead { get; protected set; }
-
+        //The pieces on the board
         protected Piece[,] pieces;
 
+        //Constructor
         public Piece(ref Piece[,] pieces, sbyte rowPos, sbyte colPos, bool side)
         {
             this.rowPos = rowPos;
             this.colPos = colPos;
             this.side = side;
-            this.isDead = false;
             this.pieces = pieces;
         }
 
@@ -43,7 +39,7 @@ namespace Chess
             sbyte row = (sbyte)(destRow + rowPos);
             sbyte col = (sbyte)(destCol + colPos);
 
-            foreach (var item in this.PossibleMoves())
+            foreach (var item in this.PossibleMoves(false))
             {
                 if (item[0] == row && item[1] == col)
                 {
@@ -51,6 +47,46 @@ namespace Chess
                 }
             }
             return false;
+        }
+
+        //****************************************************************
+        //Protected Methods
+        //Test the king's
+        protected List<sbyte[]> TestForKingSafety(List<sbyte[]> unTestedMoves)
+        {
+            List<sbyte[]> testedMoves = new List<sbyte[]>();
+            //Finds the allied king's position
+            King alliedKing = null;
+            for (sbyte i = 0; i < ChessGame.rowSize; i++)
+            {
+                for (sbyte j = 0; j < ChessGame.colSize; j++)
+                {
+                    if (pieces[i, j] != null && pieces[i, j].side == this.side && pieces[i, j] is King)
+                        alliedKing = pieces[i, j] as King;
+                }
+            }
+            if (alliedKing == null)
+                throw new Exception("Where did your king go seriously");
+
+            //Go through every move and test if the outcome would lead to the king being in chess
+            foreach (var item in unTestedMoves)
+            {
+                Piece save = pieces[item[0], item[1]];
+                pieces[item[0], item[1]] = this;
+                pieces[this.rowPos, this.colPos] = null;
+                this.rowPos += item[0];
+                this.colPos += item[1];
+                if (!alliedKing.IsKingInDanger())
+                {
+                    testedMoves.Add(item);
+                }
+
+                pieces[item[0], item[1]] = save;
+                this.rowPos -= item[0];
+                this.colPos -= item[1];
+                pieces[this.rowPos, this.colPos] = this;
+            }
+            return testedMoves;
         }
 
         //--------------------------------------------------------
@@ -90,7 +126,7 @@ namespace Chess
         /// Returns all the possible spots where it can move
         /// </summary>
         /// <returns>Spots where it can move</returns>
-        public virtual List<sbyte[]> PossibleMoves(bool kingMoveTest = false)
+        public virtual List<sbyte[]> PossibleMoves(bool kingMoveTest = false, bool kingIsInDanger = false)
         {
             throw new NotImplementedException();
         }
@@ -112,19 +148,22 @@ namespace Chess
         /// Returns all the possible spots where the pawn can move
         /// </summary>
         /// <returns>list of all the cords</returns>
-        public override List<sbyte[]> PossibleMoves(bool kingMoveTest = false)
+        public override List<sbyte[]> PossibleMoves(bool kingMoveTest = false, bool kingIsInDanger = false)
         {
             List<sbyte[]> output = new List<sbyte[]>();
             if (rowPos + (side ? -1 : 1) > ChessGame.rowSize || rowPos + (side ? -1 : 1) < 0)
                 return output;
             if (!kingMoveTest && pieces[rowPos + (side ? -1 : 1), colPos] == null)
                 output.Add(new sbyte[] { (sbyte)(rowPos + (side ? -1 : 1)), colPos });
-            if (!kingMoveTest && pieces[rowPos + (side ? -2 : 2), colPos] == null && firstMove)
+            if (!kingMoveTest && firstMove && pieces[rowPos + (side ? -2 : 2), colPos] == null)
                 output.Add(new sbyte[] { (sbyte)(rowPos + (side ? -2 : 2)), colPos });
             if (colPos + 1 < ChessGame.colSize && (kingMoveTest || pieces[rowPos + (side ? -1 : 1), colPos + 1] != null && pieces[rowPos + (side ? -1 : 1), colPos + 1].side != side))
                 output.Add(new sbyte[] { (sbyte)(rowPos + (side ? -1 : 1)), (sbyte)(colPos + 1) });
             if (colPos - 1 >= 0 && (kingMoveTest || pieces[rowPos + (side ? -1 : 1), colPos - 1] != null && pieces[rowPos + (side ? -1 : 1), colPos - 1].side != side))
                 output.Add(new sbyte[] { (sbyte)(rowPos + (side ? -1 : 1)), (sbyte)(colPos - 1) });
+
+            if (kingIsInDanger)
+                output = TestForKingSafety(output);
             return output;
         }
 
@@ -157,7 +196,7 @@ namespace Chess
         /// Uses the f(x)= 3-|x| and f(x)=-3+|x| to get the values
         /// </summary>
         /// <returns>a list of cords where it can move</returns>
-        public override List<sbyte[]> PossibleMoves(bool kingMoveTest = false)
+        public override List<sbyte[]> PossibleMoves(bool kingMoveTest = false, bool kingIsInDanger = false)
         {
             List<sbyte[]> output = new List<sbyte[]>();
 
@@ -173,6 +212,8 @@ namespace Chess
                         output.Add(new sbyte[] { tempRow, tempCol });
                 }
             }
+            if (kingIsInDanger)
+                output = TestForKingSafety(output);
             return output;
         }
     }
@@ -192,7 +233,7 @@ namespace Chess
         /// Returns a list of all the spots where the Rook can move (moves horizontally and vertically)
         /// </summary>
         /// <returns>a list of cords where it can move</returns>
-        public override List<sbyte[]> PossibleMoves(bool kingMoveTest = false)
+        public override List<sbyte[]> PossibleMoves(bool kingMoveTest = false, bool kingIsInDanger = false)
         {
             List<sbyte[]> output = new List<sbyte[]>();
             sbyte tempRow = base.rowPos;
@@ -246,6 +287,8 @@ namespace Chess
                 }
                 output.Add(new sbyte[] { (sbyte)(i), colPos });
             }
+            if (kingIsInDanger)
+                output = TestForKingSafety(output);
             return output;
         }
     }
@@ -265,7 +308,7 @@ namespace Chess
         /// Returns a list of all the spots where the Bishop can move (moves diagonally)
         /// </summary>
         /// <returns>a list of cords where it can move</returns>
-        public override List<sbyte[]> PossibleMoves(bool kingMoveTest = false)
+        public override List<sbyte[]> PossibleMoves(bool kingMoveTest = false, bool kingIsInDanger = false)
         {
             List<sbyte[]> output = new List<sbyte[]>();
             sbyte tempRow;
@@ -295,7 +338,8 @@ namespace Chess
                     while (tempCol < ChessGame.colSize - 1 && tempCol > 0 && tempRow < ChessGame.rowSize - 1 && tempRow > 0);
                 }
             }
-
+            if (kingIsInDanger)
+                output = TestForKingSafety(output);
             return output;
         }
     }
@@ -315,7 +359,7 @@ namespace Chess
         /// Returns a list of all the spots where the Queen can move basicly it's a combination of the rook's and the bishop's moveset
         /// </summary>
         /// <returns>a list of cords where it can move</returns>
-        public override List<sbyte[]> PossibleMoves(bool kingMoveTest = false)
+        public override List<sbyte[]> PossibleMoves(bool kingMoveTest = false, bool kingIsInDanger = false)
         {
             List<sbyte[]> output = new List<sbyte[]>();
             sbyte tempRow = base.rowPos;
@@ -395,6 +439,8 @@ namespace Chess
                 }
                 output.Add(new sbyte[] { (sbyte)(i), colPos });
             }
+            if (kingIsInDanger)
+                output = TestForKingSafety(output);
             return output;
         }
     }
@@ -439,11 +485,24 @@ namespace Chess
             return output;
         }
 
+        //--------------------------------------------------------------------------
+        //Checks if the king can be attacked or not
+        public bool IsKingInDanger()
+        {
+            List<sbyte[]> enemyMoves = GetOtherPlayersEveryMove();
+            foreach (var item in enemyMoves)
+            {
+                if (item[0] == rowPos && item[1] == colPos)
+                    return true;
+            }
+            return false;
+        }
+
         /// <summary>
         /// Returns a list of all the spots where the Bishop can move
         /// </summary>
         /// <returns>a list of cords where it can move</returns>
-        public override List<sbyte[]> PossibleMoves(bool kingMoveTest = false)
+        public override List<sbyte[]> PossibleMoves(bool kingMoveTest = false, bool kingIsInDanger = false)
         {
             List<sbyte[]> output = new List<sbyte[]>();
             for (sbyte i = -1; i < 2; i++)
@@ -475,9 +534,9 @@ namespace Chess
                         }
                     }
                 }
-                if (output.Count == 0)
-                    this.gameOver = (byte)(isThreatened ? 1 : 2);
             }
+            if (kingIsInDanger)
+                output = TestForKingSafety(output);
             return output;
         }
 

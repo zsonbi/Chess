@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -20,6 +18,7 @@ namespace Chess
         private List<Ellipse> possibleMoveMarkers = new List<Ellipse>();
         private sbyte[] currSelected = new sbyte[2] { -1, -1 };
         private Image currPieceSelected;
+        private SelectPieceWindow upgradeWindow = null;
 
         //Constructor
         public MainWindow()
@@ -48,6 +47,17 @@ namespace Chess
                     boardGrid.Children.Add(rect);
                     squares[i, j] = rect;
                 }
+            }
+        }
+
+        //----------------------------------------------------------------------
+        //Checks if the game is over and if it is then overwrites the label to who won
+        private void CheckForGameOver()
+        {
+            if (game.gameOver)
+            {
+                GameOverLabel.Visibility = Visibility.Visible;
+                GameOverLabel.Content = (game.WhoWon() ? "White" : "Black") + " Won";
             }
         }
 
@@ -138,14 +148,39 @@ namespace Chess
         {
             if (IsLegal(row, col))
             {
+                //We paint the square where the king is currently in every time so it won't be left red accidentally
+                sbyte[] kingPos = (game.currSide ? game.whiteKingPos : game.blackKingPos);
+                squares[kingPos[0], kingPos[1]].Fill = kingPos[1] % 2 == kingPos[0] % 2 ? Brushes.Wheat : Brushes.SandyBrown;
+
                 if (game.Move(currSelected[0], currSelected[1], row, col))
                 {
                     ClearPossibleMoves();
                     squares[currSelected[0], currSelected[1]].Margin = new Thickness(0);
                     Grid.SetColumn(currPieceSelected, col);
                     Grid.SetRow(currPieceSelected, row);
-                    currSelected[0] = -1;
-                    currSelected[1] = -1;
+
+                    if (game.CanUpgradeAt(row, col))
+                    {
+                        CreateUpgradeWindow(!game.currSide);
+
+                        currSelected[0] = row;
+                        currSelected[1] = col;
+                    }
+                    else
+                    {
+                        currSelected[0] = -1;
+                        currSelected[1] = -1;
+                    }
+
+                    //Marks the king's position if it's in check
+                    kingPos = (game.currSide ? game.whiteKingPos : game.blackKingPos);
+
+                    if (game.kingIsThreatened)
+                    {
+                        squares[kingPos[0], kingPos[1]].Fill = Brushes.Red;
+                    }
+                    //Checks if the game is over
+                    CheckForGameOver();
                     return 2;
                 }
             }
@@ -171,6 +206,20 @@ namespace Chess
             return 0;
         }
 
+        //------------------------------------------------------------------------
+        //Adds the events to the Window where the user can select an upgrade for the piece
+        private void CreateUpgradeWindow(bool side)
+        {
+            if (upgradeWindow != null)
+                upgradeWindow.Close();
+            upgradeWindow = new SelectPieceWindow(side);
+            upgradeWindow.Show();
+            foreach (var item in upgradeWindow.mainGrid.Children)
+            {
+                ((item as Border).Child as Image).MouseDown += SelectUpgradePiece;
+            }
+        }
+
         //************************************************************************
         //Handlers
         //Selects the piece
@@ -184,11 +233,26 @@ namespace Chess
                 boardGrid.Children.Remove(piece);
         }
 
+        //----------------------------------------------------------------------------------
         //Selects the rectangle
         private void SelectSquare(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             Rectangle rect = sender as Rectangle;
             Select((sbyte)Grid.GetRow(rect), (sbyte)Grid.GetColumn(rect));
+        }
+
+        //----------------------------------------------------------------------------------
+        //Selects the piece which we want to upgrade to
+        private void SelectUpgradePiece(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            Image piece = sender as Image;
+
+            game.Upgrade(currSelected[0], currSelected[1], piece.Name[0]);
+            currPieceSelected.Source = piece.Source;
+            currSelected[0] = -1;
+            currSelected[1] = -1;
+            upgradeWindow.Close();
+            CheckForGameOver();
         }
     }
 }

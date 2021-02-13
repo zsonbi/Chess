@@ -9,5 +9,6 @@
     <Grid>
         <Grid Name="boardGrid" Background="Green">
         </Grid>
+        <Label Name="GameOverLabel" Visibility="Hidden" Content="White won" FontSize="120" VerticalAlignment="Center" HorizontalAlignment="Center"></Label>
     </Grid>
 </Window>
