@@ -151,8 +151,8 @@ namespace Chess
                 //We paint the square where the king is currently in every time so it won't be left red accidentally
                 sbyte[] kingPos = (game.currSide ? game.whiteKingPos : game.blackKingPos);
                 squares[kingPos[0], kingPos[1]].Fill = kingPos[1] % 2 == kingPos[0] % 2 ? Brushes.Wheat : Brushes.SandyBrown;
-
-                if (game.Move(currSelected[0], currSelected[1], row, col))
+                byte moveResult = game.Move(currSelected[0], currSelected[1], row, col);
+                if (moveResult >= 1)
                 {
                     ClearPossibleMoves();
                     squares[currSelected[0], currSelected[1]].Margin = new Thickness(0);
@@ -172,6 +172,20 @@ namespace Chess
                         currSelected[1] = -1;
                     }
 
+                    if (moveResult == 2)
+                    {
+                        sbyte kingColSpot = (game.currSide ? game.blackKing : game.whiteKing).colPos;
+                        sbyte rookColSpot = (sbyte)(kingColSpot - 1 + kingColSpot / 3);
+                        foreach (var item in boardGrid.Children)
+                        {
+                            if (item is Image)
+                            {
+                                if (Grid.GetRow(item as UIElement) == row && Grid.GetColumn(item as UIElement) == rookColSpot)
+                                    Grid.SetColumn(item as Image, (sbyte)((sbyte)(kingColSpot + 1 - kingColSpot / 3)));
+                            }
+                        }
+                    }
+
                     //Marks the king's position if it's in check
                     kingPos = (game.currSide ? game.whiteKingPos : game.blackKingPos);
 
@@ -181,6 +195,7 @@ namespace Chess
                     }
                     //Checks if the game is over
                     CheckForGameOver();
+                    currPieceSelected = null;
                     return 2;
                 }
             }

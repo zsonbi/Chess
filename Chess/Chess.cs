@@ -224,11 +224,11 @@ namespace Chess
         /// <param name="colPos">column of the piece</param>
         /// <param name="toRowPos">row where the piece should go</param>
         /// <param name="toColPos">column where the piece should go</param>
-        /// <returns>true if it was successful false if there was an error</returns>
-        public bool Move(sbyte rowPos, sbyte colPos, sbyte toRowPos, sbyte toColPos)
+        /// <returns>1 if it was successful 0 if there was an error 2 if it was successful, but the move was a rook-king swap</returns>
+        public byte Move(sbyte rowPos, sbyte colPos, sbyte toRowPos, sbyte toColPos)
         {
             if (gameOver)
-                return false;
+                return 0;
 
             try
             {
@@ -239,12 +239,16 @@ namespace Chess
 #if DEBUG
                 Console.WriteLine("Error at movement Error:" + e);
 #endif
-                return false;
+                return 0;
             }
             kingIsThreatened = false;
             CheckForKingThreat(currSide ? blackKing : whiteKing);
             currSide = !currSide;
-            return true;
+
+            if (pieces[toRowPos, toColPos] is King && Math.Abs(toColPos - colPos) > 1)
+                return 2;
+
+            return 1;
         }
 
         /// <summary>

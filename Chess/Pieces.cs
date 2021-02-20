@@ -158,7 +158,7 @@ namespace Chess
                 return output;
             if (!kingMoveTest && pieces[rowPos + (side ? -1 : 1), colPos] == null)
                 output.Add(new sbyte[] { (sbyte)(rowPos + (side ? -1 : 1)), colPos });
-            if (!kingMoveTest && firstMove && pieces[rowPos + (side ? -2 : 2), colPos] == null)
+            if (!kingMoveTest && output.Count != 0 && firstMove && pieces[rowPos + (side ? -2 : 2), colPos] == null)
                 output.Add(new sbyte[] { (sbyte)(rowPos + (side ? -2 : 2)), colPos });
             if (colPos + 1 < ChessGame.colSize && (kingMoveTest || pieces[rowPos + (side ? -1 : 1), colPos + 1] != null && pieces[rowPos + (side ? -1 : 1), colPos + 1].side != side))
                 output.Add(new sbyte[] { (sbyte)(rowPos + (side ? -1 : 1)), (sbyte)(colPos + 1) });
@@ -227,6 +227,8 @@ namespace Chess
     /// </summary>
     internal class Rook : Piece
     {
+        internal bool firstMove = true;
+
         //Constructor
         public Rook(ref Piece[,] pieces, sbyte rowPos, sbyte colPos, bool side) : base(ref pieces, rowPos, colPos, side)
         {
@@ -293,6 +295,32 @@ namespace Chess
             if (kingIsInDanger)
                 output = TestForKingSafety(output);
             return output;
+        }
+
+        /// <summary>
+        /// The movement of the rook
+        /// </summary>
+        /// <param name="destRow">how much it should go forward</param>
+        /// <param name="destCol">how much it should go sideways</param>
+        public override void Move(sbyte destRow, sbyte destCol)
+        {
+            base.Move(destRow, destCol);
+            firstMove = false;
+        }
+
+        /// <summary>
+        /// This will only be called when the rook and king makes a swap
+        /// </summary>
+        /// <param name="destCol">the column where the rook will go</param>
+        internal void SwapMove(sbyte destCol)
+        {
+            if (!firstMove || pieces[rowPos, destCol] != null)
+                throw new Exception("Error at SwapMove");
+
+            pieces[rowPos, colPos] = null;
+            this.colPos = destCol;
+            pieces[rowPos, colPos] = this;
+            this.firstMove = false;
         }
     }
 
@@ -391,6 +419,9 @@ namespace Chess
         /// </summary>
         public byte gameOver { get; private set; }
 
+        //A bool which stores if the king has moved yet
+        internal bool firstMove = true;
+
         public King(ref Piece[,] pieces, sbyte rowPos, sbyte colPos, bool side) : base(ref pieces, rowPos, colPos, side)
         {
             this.gameOver = 0;
@@ -448,6 +479,28 @@ namespace Chess
                         output.Add(new sbyte[] { tempRow, tempCol });
                 }
             }
+
+            //Rook - King swap move
+            if (!kingMoveTest && firstMove)
+            {
+                for (sbyte i = (sbyte)(this.colPos - 1); i >= 0; i--)
+                {
+                    if (pieces[rowPos, i] is Rook && (pieces[rowPos, i] as Rook).firstMove && i == 0)
+                        output.Add(new sbyte[] { rowPos, 1 });
+                    else if (pieces[rowPos, i] != null)
+                        break;
+                }
+                for (sbyte i = (sbyte)(this.colPos + 1); i < ChessGame.colSize; i++)
+                {
+                    if (pieces[rowPos, i] is Rook && (pieces[rowPos, i] as Rook).firstMove && i == ChessGame.colSize - 1)
+                        output.Add(new sbyte[] { rowPos, 6 });
+                    else if (pieces[rowPos, i] != null)
+                        break;
+                }
+            }
+
+            //this if is needed here if you remove it you will hate yourself
+            //btw it is needed here so we don't get into an infinite loop
             if (!kingMoveTest)
             {
                 //Gets the other player's every move
@@ -477,7 +530,13 @@ namespace Chess
         public override void Move(sbyte destRow, sbyte destCol)
         {
             base.Move(destRow, destCol);
-            isThreatened = false;
+            if (Math.Abs(destCol) > 1)
+            {
+                Rook rookToSwapWith = pieces[rowPos, (colPos - 1 + colPos / 3)] as Rook;
+                rookToSwapWith.SwapMove((sbyte)(colPos + 1 - colPos / 3));
+            }
+            this.firstMove = false;
+            this.isThreatened = false;
         }
     }
 }
