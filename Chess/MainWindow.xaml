@@ -6,8 +6,84 @@
         xmlns:local="clr-namespace:Chess"
         mc:Ignorable="d"
         Title="Chess" Height="800" Width="800">
-    <Grid>
-        <Grid Name="boardGrid" Background="Green">
+    <Window.Resources>
+        <Style TargetType="Label">
+            <Setter Property="VerticalAlignment" Value="Center"></Setter>
+            <Setter Property="HorizontalAlignment" Value="Center"></Setter>
+            <Setter Property="VerticalContentAlignment" Value="Center"></Setter>
+            <Setter Property="HorizontalContentAlignment" Value="Center"></Setter>
+            <Setter Property="FontSize" Value="50" />
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="White">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+
+        <!--Labels for horizontal moves-->
+        <!--Top Labels-->
+        <Label Content="a" Grid.Row="0" Grid.Column="1"></Label>
+        <Label Content="b" Grid.Row="0" Grid.Column="2"></Label>
+        <Label Content="c" Grid.Row="0" Grid.Column="3"></Label>
+        <Label Content="d" Grid.Row="0" Grid.Column="4"></Label>
+        <Label Content="e" Grid.Row="0" Grid.Column="5"></Label>
+        <Label Content="f" Grid.Row="0" Grid.Column="6"></Label>
+        <Label Content="g" Grid.Row="0" Grid.Column="7"></Label>
+        <Label Content="h" Grid.Row="0" Grid.Column="8"></Label>
+        <!--Bottom Labels-->
+        <Label Content="a" Grid.Row="9" Grid.Column="1"></Label>
+        <Label Content="b" Grid.Row="9" Grid.Column="2"></Label>
+        <Label Content="c" Grid.Row="9" Grid.Column="3"></Label>
+        <Label Content="d" Grid.Row="9" Grid.Column="4"></Label>
+        <Label Content="e" Grid.Row="9" Grid.Column="5"></Label>
+        <Label Content="f" Grid.Row="9" Grid.Column="6"></Label>
+        <Label Content="g" Grid.Row="9" Grid.Column="7"></Label>
+        <Label Content="h" Grid.Row="9" Grid.Column="8"></Label>
+
+        <!--Vertical Labels-->
+        <!--Left side-->
+        <Label Content="1" Grid.Row="8" Grid.Column="0"></Label>
+        <Label Content="2" Grid.Row="7" Grid.Column="0"></Label>
+        <Label Content="3" Grid.Row="6" Grid.Column="0"></Label>
+        <Label Content="4" Grid.Row="5" Grid.Column="0"></Label>
+        <Label Content="5" Grid.Row="4" Grid.Column="0"></Label>
+        <Label Content="6" Grid.Row="3" Grid.Column="0"></Label>
+        <Label Content="7" Grid.Row="2" Grid.Column="0"></Label>
+        <Label Content="8" Grid.Row="1" Grid.Column="0"></Label>
+        <!--Right side-->
+        <Label Content="1" Grid.Row="8" Grid.Column="9"></Label>
+        <Label Content="2" Grid.Row="7" Grid.Column="9"></Label>
+        <Label Content="3" Grid.Row="6" Grid.Column="9"></Label>
+        <Label Content="4" Grid.Row="5" Grid.Column="9"></Label>
+        <Label Content="5" Grid.Row="4" Grid.Column="9"></Label>
+        <Label Content="6" Grid.Row="3" Grid.Column="9"></Label>
+        <Label Content="7" Grid.Row="2" Grid.Column="9"></Label>
+        <Label Content="8" Grid.Row="1" Grid.Column="9"></Label>
+
+        <Grid Name="boardGrid" Grid.Row="1" Grid.RowSpan="8" Grid.Column="1" Grid.ColumnSpan="8" Background="Green">
         </Grid>
         <Label Name="GameOverLabel" Visibility="Hidden" Content="White won" FontSize="120" VerticalAlignment="Center" HorizontalAlignment="Center"></Label>
     </Grid>

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.IO;
+using System.Threading.Tasks;
+using System.Drawing;
 
 namespace Chess
 {
@@ -218,14 +220,46 @@ namespace Chess
         }
 
         /// <summary>
+        /// Moves the piece which position was specified by the first string
+        /// e. g. if the pawn is on the 1,1 spot and you want to move it to 2,1 ypu should write 2b 3b
+        /// </summary>
+        /// <param name="pieceSpot">The position of the piece which will move</param>
+        /// <param name="pieceTarget">The location where we want to move the piece</param>
+        /// <returns>1 if it was successful if there was an error 0 and 2 if it was successful, but the move was a rook-king swap</returns>
+        public async Task<byte> Move(string pieceSpot, string pieceTarget)
+        {
+            sbyte pieceSourceRow;
+            sbyte pieceSourceCol;
+            sbyte targetRow;
+            sbyte targetCol;
+
+            try
+            {
+                pieceSourceCol = Convert.ToSByte((char)pieceSpot[0] - 97);
+                pieceSourceRow = (sbyte)Math.Abs(7 - Convert.ToSByte((char)pieceSpot[1]));
+                targetCol = Convert.ToSByte((char)pieceTarget[0] - 97);
+                targetRow = (sbyte)Math.Abs(7 - Convert.ToSByte((char)pieceTarget[1]));
+            }
+            catch (Exception e)
+            {
+#if DEBUG
+                Console.WriteLine("Error at movement converting:" + e);
+#endif
+                return 0;
+            }
+
+            return await Move(pieceSourceRow, pieceSourceCol, targetRow, targetCol);
+        }
+
+        /// <summary>
         /// Moves the piece specified by the first two parameters to the cords specified by the second two parameters
         /// </summary>
         /// <param name="rowPos">row of the piece</param>
         /// <param name="colPos">column of the piece</param>
         /// <param name="toRowPos">row where the piece should go</param>
         /// <param name="toColPos">column where the piece should go</param>
-        /// <returns>1 if it was successful 0 if there was an error 2 if it was successful, but the move was a rook-king swap</returns>
-        public byte Move(sbyte rowPos, sbyte colPos, sbyte toRowPos, sbyte toColPos)
+        /// <returns>1 if it was successful if there was an error 0 and 2 if it was successful, but the move was a rook-king swap</returns>
+        public async Task<byte> Move(sbyte rowPos, sbyte colPos, sbyte toRowPos, sbyte toColPos)
         {
             if (gameOver)
                 return 0;
@@ -247,7 +281,6 @@ namespace Chess
 
             if (pieces[toRowPos, toColPos] is King && Math.Abs(toColPos - colPos) > 1)
                 return 2;
-
             return 1;
         }
 
@@ -309,6 +342,15 @@ namespace Chess
             }
             else
                 return blackKing.isThreatened;
+        }
+
+        /// <summary>
+        /// Returns a bitmap of the board
+        /// </summary>
+        /// <returns>A bitmap of the board</returns>
+        public async Task<Bitmap> GetImageOfBoard()
+        {
+            return await ChessImageCreator.CreateImageFromBoard(ExportBoard());
         }
     }
 }

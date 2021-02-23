@@ -40,6 +40,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -58,6 +59,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ChessImageCreator.cs" />
     <Compile Include="SelectPieceWindow.xaml.cs">
       <DependentUpon>SelectPieceWindow.xaml</DependentUpon>
     </Compile>
@@ -121,6 +123,9 @@
     <Resource Include="Pieces\WhitePawn.png" />
     <Resource Include="Pieces\WhiteQueen.png" />
     <Resource Include="Pieces\WhiteRook.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Labels\board.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
