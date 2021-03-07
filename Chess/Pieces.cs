@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Chess
 {
@@ -111,7 +112,7 @@ namespace Chess
         /// </summary>
         /// <param name="destRow">the row where it should go</param>
         /// <param name="destCol">the column where it should go</param>
-        public virtual void Move(sbyte destRow, sbyte destCol)
+        public virtual async Task Move(sbyte destRow, sbyte destCol)
         {
             if (OutOfBounds((sbyte)(rowPos + destRow), (sbyte)(colPos + destCol)))
                 throw new IndexOutOfRangeException("Gone out of the board");
@@ -175,9 +176,9 @@ namespace Chess
         /// </summary>
         /// <param name="destRow">how much it should go forward</param>
         /// <param name="destCol">how much it should go sideways</param>
-        public override void Move(sbyte destRow, sbyte destCol)
+        public override async Task Move(sbyte destRow, sbyte destCol)
         {
-            base.Move(destRow, destCol);
+            await base.Move(destRow, destCol);
             firstMove = false;
         }
     }
@@ -302,9 +303,9 @@ namespace Chess
         /// </summary>
         /// <param name="destRow">how much it should go forward</param>
         /// <param name="destCol">how much it should go sideways</param>
-        public override void Move(sbyte destRow, sbyte destCol)
+        public override async Task Move(sbyte destRow, sbyte destCol)
         {
-            base.Move(destRow, destCol);
+            await base.Move(destRow, destCol);
             firstMove = false;
         }
 
@@ -527,9 +528,9 @@ namespace Chess
         /// </summary>
         /// <param name="destRow">how much it should go forward</param>
         /// <param name="destCol">how much it should go sideways</param>
-        public override void Move(sbyte destRow, sbyte destCol)
+        public override async Task Move(sbyte destRow, sbyte destCol)
         {
-            base.Move(destRow, destCol);
+            await base.Move(destRow, destCol);
             if (Math.Abs(destCol) > 1)
             {
                 Rook rookToSwapWith = pieces[rowPos, (colPos - 1 + colPos / 3)] as Rook;

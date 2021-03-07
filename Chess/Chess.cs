@@ -64,17 +64,22 @@ namespace Chess
         public bool gameOver { get; private set; }
 
         //Constructor
+        /// <summary>
+        /// Creates a new instance of chess
+        /// </summary>
+        /// <param name="challangerId">the discord id of the player who challenged the other one aka white player</param>
+        /// <param name="challangedId">the discord id of the player who was challenged by the other one aka black(nigger) player</param>
         public ChessGame()
         {
             kingIsThreatened = false;
             //The side which comes next
             pieces = new Piece[rowSize, colSize];
             //If there is an already saved user config for that user load it
-            if (File.Exists("baseBoard.json"))
+            if (File.Exists("../../../Chess/baseBoard.json"))
             {
                 string json;
                 List<PieceSave> pieceSaves;
-                using (StreamReader r = new StreamReader("../../baseBoard.json"))
+                using (StreamReader r = new StreamReader("../../../Chess/baseBoard.json"))
                 {
                     json = r.ReadToEnd();
                     pieceSaves = JsonConvert.DeserializeObject<List<PieceSave>>(json);
@@ -123,7 +128,6 @@ namespace Chess
 
                 default:
                     throw new Exception("Unknown character");
-                    break;
             }
         }
 
@@ -135,15 +139,18 @@ namespace Chess
             {
                 whichKing.isThreatened = true;
                 kingIsThreatened = true;
-                //If the king has no other moves test for other pieces
-                if (whichKing.PossibleMoves().Count == 0)
+            }
+            //If the king has no other moves test for other pieces
+            if (whichKing.PossibleMoves().Count == 0)
+            {
+                List<sbyte[]> allyMoves = new List<sbyte[]>();
+                //get every move which the other pieces can make if there is atleast one
+                //then the king can still survive
+                for (int i = 0; i < rowSize; i++)
                 {
-                    List<sbyte[]> allyMoves = new List<sbyte[]>();
-                    //get every move which the other pieces can make if there is atleast one
-                    //then the king can still survive
-                    for (int i = 0; i < rowSize; i++)
+                    for (int j = 0; j < colSize; j++)
                     {
-                        for (int j = 0; j < colSize; j++)
+                        if (pieces[i, j] != null)
                         {
                             if (pieces[i, j].side == whichKing.side)
                             {
@@ -151,12 +158,12 @@ namespace Chess
                             }
                         }
                     }
-
-                    if (allyMoves.Count == 0)
-                        gameOver = true;
                 }
-                return;
+
+                if (allyMoves.Count == 0)
+                    gameOver = true;
             }
+            return;
         }
 
         //-------------------------------------------------------------------------
@@ -221,11 +228,15 @@ namespace Chess
 
         /// <summary>
         /// Moves the piece which position was specified by the first string
-        /// e. g. if the pawn is on the 1,1 spot and you want to move it to 2,1 ypu should write 2b 3b
+        /// e. g. if the pawn is on the 1,1 spot and you want to move it to 2,1 ypu should write b2 b3
         /// </summary>
         /// <param name="pieceSpot">The position of the piece which will move</param>
         /// <param name="pieceTarget">The location where we want to move the piece</param>
-        /// <returns>1 if it was successful if there was an error 0 and 2 if it was successful, but the move was a rook-king swap</returns>
+        /// <returns>1 if it was successful if there was an error 0 and 2 if it was successful, but the move was a rook-king swap
+        /// returns 3 if it wasn't that players turn
+        /// returns 4 if it wasn't your piece
+        /// return 5 if you tried to attack your own
+        /// returns 6 if it can upgrade</returns>
         public async Task<byte> Move(string pieceSpot, string pieceTarget)
         {
             sbyte pieceSourceRow;
@@ -239,6 +250,14 @@ namespace Chess
                 pieceSourceRow = (sbyte)Math.Abs(8 - Convert.ToSByte(pieceSpot[1] + ""));
                 targetCol = Convert.ToSByte((char)pieceTarget[0] - 97);
                 targetRow = (sbyte)Math.Abs(8 - Convert.ToSByte(pieceTarget[1] + ""));
+                if (pieces[pieceSourceRow, pieceSourceCol] != null && pieces[pieceSourceRow, pieceSourceCol].side != currSide)
+                {
+                    return 4;
+                }
+                else if (pieces[targetRow, targetCol] != null && pieces[targetRow, targetCol].side == currSide)
+                {
+                    return 5;
+                }
             }
             catch (Exception e)
             {
@@ -258,7 +277,9 @@ namespace Chess
         /// <param name="colPos">column of the piece</param>
         /// <param name="toRowPos">row where the piece should go</param>
         /// <param name="toColPos">column where the piece should go</param>
-        /// <returns>1 if it was successful if there was an error 0 and 2 if it was successful, but the move was a rook-king swap</returns>
+        /// <returns>1 if it was successful if there was an error 0 and 2 if it was successful, but the move was a rook-king swap
+        /// returns 6 if it can upgrade</returns>
+
         public async Task<byte> Move(sbyte rowPos, sbyte colPos, sbyte toRowPos, sbyte toColPos)
         {
             if (gameOver)
@@ -266,7 +287,7 @@ namespace Chess
 
             try
             {
-                pieces[rowPos, colPos].Move((sbyte)(toRowPos - rowPos), (sbyte)(toColPos - colPos));
+                await pieces[rowPos, colPos].Move((sbyte)(toRowPos - rowPos), (sbyte)(toColPos - colPos));
             }
             catch (Exception e)
             {
@@ -278,6 +299,9 @@ namespace Chess
             kingIsThreatened = false;
             CheckForKingThreat(currSide ? blackKing : whiteKing);
             currSide = !currSide;
+
+            if (CanUpgrade(pieces[toRowPos, toColPos]))
+                return 6;
 
             if (pieces[toRowPos, toColPos] is King && Math.Abs(toColPos - colPos) > 1)
                 return 2;
@@ -309,6 +333,36 @@ namespace Chess
         }
 
         /// <summary>
+        /// Upgrades the piece which is at that cords
+        /// </summary>
+        /// <param name="upgradeTargetPos">the string which marks the cord of the piece e. g. a0</param>
+        /// <param name="type"></param>
+        public void Upgrade(string upgradeTargetPos, char type)
+        {
+            sbyte targetRow;
+            sbyte targetCol;
+
+            try
+            {
+                targetCol = Convert.ToSByte((char)upgradeTargetPos[0] - 97);
+                targetRow = (sbyte)Math.Abs(8 - Convert.ToSByte(upgradeTargetPos[1] + ""));
+                if (pieces[targetRow, targetCol] != null && pieces[targetRow, targetCol].side == currSide)
+                {
+                    throw new Exception("Can't upgrade");
+                }
+            }
+            catch (Exception e)
+            {
+#if DEBUG
+                Console.WriteLine("Error at upgrade piece position converting from string:" + e);
+#endif
+                return;
+            }
+
+            Upgrade(targetRow, targetCol, type);
+        }
+
+        /// <summary>
         /// Upgrades the pawn to an another type
         /// </summary>
         /// <param name="row">row of that piece</param>
@@ -333,15 +387,22 @@ namespace Chess
         /// <summary>
         /// Returns who won throws an exception if the game was still in progress
         /// </summary>
-        /// <returns>true = white won false = black won</returns>
-        public bool WhoWon()
+        /// <returns>1 = white won 0 = black won 2 = draw</returns>
+        public byte WhoWon()
         {
             if (!gameOver)
             {
                 throw new Exception("NoOne won");
             }
             else
-                return blackKing.isThreatened;
+            {
+                if (whiteKing.isThreatened)
+                    return 0;
+                else if (blackKing.isThreatened)
+                    return 1;
+                else
+                    return 2;
+            }
         }
 
         /// <summary>

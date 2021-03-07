@@ -57,7 +57,27 @@ namespace Chess
             if (game.gameOver)
             {
                 GameOverLabel.Visibility = Visibility.Visible;
-                GameOverLabel.Content = (game.WhoWon() ? "White" : "Black") + " Won";
+                string whoWon;
+                switch (game.WhoWon())
+                {
+                    case 0:
+                        whoWon = "Black won";
+                        break;
+
+                    case 1:
+                        whoWon = "White won";
+                        break;
+
+                    case 2:
+                        whoWon = "Draw";
+                        break;
+
+                    default:
+                        whoWon = "error";
+                        break;
+                }
+
+                GameOverLabel.Content = whoWon;
             }
         }
 
