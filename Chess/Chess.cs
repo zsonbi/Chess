@@ -236,9 +236,9 @@ namespace Chess
             try
             {
                 pieceSourceCol = Convert.ToSByte((char)pieceSpot[0] - 97);
-                pieceSourceRow = (sbyte)Math.Abs(7 - Convert.ToSByte((char)pieceSpot[1]));
+                pieceSourceRow = (sbyte)Math.Abs(8 - Convert.ToSByte(pieceSpot[1] + ""));
                 targetCol = Convert.ToSByte((char)pieceTarget[0] - 97);
-                targetRow = (sbyte)Math.Abs(7 - Convert.ToSByte((char)pieceTarget[1]));
+                targetRow = (sbyte)Math.Abs(8 - Convert.ToSByte(pieceTarget[1] + ""));
             }
             catch (Exception e)
             {
