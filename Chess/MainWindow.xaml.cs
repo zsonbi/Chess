@@ -18,6 +18,7 @@ namespace Chess
         private List<Ellipse> possibleMoveMarkers = new List<Ellipse>();
         private sbyte[] currSelected = new sbyte[2] { -1, -1 };
         private Image currPieceSelected;
+        private Image lastPieceSelected;
         private SelectPieceWindow upgradeWindow = null;
 
         //Constructor
@@ -215,6 +216,7 @@ namespace Chess
                     }
                     //Checks if the game is over
                     CheckForGameOver();
+
                     currPieceSelected = null;
                     return 2;
                 }
@@ -249,6 +251,7 @@ namespace Chess
                 upgradeWindow.Close();
             upgradeWindow = new SelectPieceWindow(side);
             upgradeWindow.Show();
+            lastPieceSelected = currPieceSelected;
             foreach (var item in upgradeWindow.mainGrid.Children)
             {
                 ((item as Border).Child as Image).MouseDown += SelectUpgradePiece;
@@ -282,7 +285,7 @@ namespace Chess
         {
             Image piece = sender as Image;
             game.Upgrade(currSelected[0], currSelected[1], piece.Name[0]);
-            currPieceSelected.Source = piece.Source;
+            lastPieceSelected.Source = piece.Source;
             currSelected[0] = -1;
             currSelected[1] = -1;
             upgradeWindow.Close();

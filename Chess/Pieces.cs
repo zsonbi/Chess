@@ -206,14 +206,15 @@ namespace Chess
 
             for (sbyte i = -2; i < 3; i++)
             {
-                if (i == 0)
-                    continue;
-                for (sbyte o = -1; o <= 1; o += 2)
+                if (i != 0)
                 {
-                    sbyte tempCol = (sbyte)(colPos + 3 * o - Math.Abs(i) * o);
-                    sbyte tempRow = (sbyte)(rowPos + i);
-                    if (!OutOfBounds(tempRow, tempCol) && (kingMoveTest || (pieces[tempRow, tempCol] == null || pieces[tempRow, tempCol].side != this.side)))
-                        output.Add(new sbyte[] { tempRow, tempCol });
+                    for (sbyte o = -1; o <= 1; o += 2)
+                    {
+                        sbyte tempCol = (sbyte)(colPos + 3 * o - Math.Abs(i) * o);
+                        sbyte tempRow = (sbyte)(rowPos + i);
+                        if (!OutOfBounds(tempRow, tempCol) && (kingMoveTest || (pieces[tempRow, tempCol] == null || pieces[tempRow, tempCol].side != this.side)))
+                            output.Add(new sbyte[] { tempRow, tempCol });
+                    }
                 }
             }
             if (kingIsInDanger)
