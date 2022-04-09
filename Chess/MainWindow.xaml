@@ -85,6 +85,6 @@
 
         <Grid Name="boardGrid" Grid.Row="1" Grid.RowSpan="8" Grid.Column="1" Grid.ColumnSpan="8" Background="Green">
         </Grid>
-        <Label Name="GameOverLabel" Visibility="Hidden" Content="White won" FontSize="120" VerticalAlignment="Center" HorizontalAlignment="Center"></Label>
+        <Label Name="GameOverLabel" Visibility="Hidden" Content="White won" FontSize="120" Grid.ColumnSpan="10" Grid.RowSpan="10" VerticalAlignment="Center" HorizontalAlignment="Center"></Label>
     </Grid>
 </Window>
